@@ -107,8 +107,8 @@ public:
         int ret = 0;
         pthread_mutex_lock(&m_mutex);
         ret = pthread_cond_wait(&m_cond, &m_mutex);
-        pthead_mutex_unlock(&m_mutex);
-        retrun ret == 0;
+        pthread_mutex_unlock(&m_mutex);
+        return ret == 0;
     }
 
     // 唤醒等待条件变量的线程
@@ -118,8 +118,8 @@ public:
     }
 
 private:
-    pthread_t_mutex_t m_mutex;
-    phthread_cond_t m_cond;
+    pthread_mutex_t m_mutex;
+    pthread_cond_t m_cond;
 };
 
 #endif
