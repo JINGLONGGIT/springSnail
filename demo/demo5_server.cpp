@@ -165,7 +165,7 @@ int main(int argc, char * argv [ ])
                 // 创建一个新线程来为sockfd工作
                 pthread_create(&thread, NULL, worker, (void*)&fds_for_new_worker);
             }
-            else 
+            else 
             {
                 printf("something else happend\n");
             }
