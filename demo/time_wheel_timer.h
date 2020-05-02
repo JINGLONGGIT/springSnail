@@ -38,6 +38,7 @@ class time_wheel
 public:
     time_wheel() : cur_slot(0)
     {
+        // 初始化时间轮上每个槽的头结点
         for (int i = 0; i < N; i++)
         {
             slots[i] = NULL;
@@ -67,7 +68,7 @@ public:
             return NULL;
         }
 
-        int ticks = 0;
+        int ticks = 0;          // 定时器的滴答数
         /******************************************************************************
          * 根据待插入定时器的超时值计算它将在时间轮中转动多少个滴答后被触发，并将该滴答
          * 数存储于变量ticks中。如果待插入定时器的超时值小于时间轮的槽间隔SI，则将ticks
@@ -88,6 +89,7 @@ public:
         // 创建新的定时器，它在时间轮转动rotation圈后被触发，且位于第ts个槽上
         tw_timer* timer = new tw_timer(rotation, ts);
 
+        // 如果第ts个槽中尚无任何定时器，则把新建的定时器插入其中，并将该定时器设置为该槽的头结点
         if (!slots[ts])
         {
             printf("add timer, rotation is %d, ts is %d, cur_slot is %d\n", rotation, ts, cur_slot);
