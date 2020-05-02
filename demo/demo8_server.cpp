@@ -9,7 +9,7 @@
 #include "global.h"
 
 #define     MAX_EVENT_NUMBER        1024
-static int pipefd[2];               // 用于处理信号传输的管道
+static int sig_pipefd[2];               // 用于处理信号传输的管道
 
 /**********************************************************
  * 函数名称：setnonblocking
@@ -57,7 +57,7 @@ void sig_handler(int sig)
     int msg = sig;
 
     // 将信号写入管道，以通知主循环
-    send(pipefd[1], (char *)&msg, 1, 0);
+    send(sig_pipefd[1], (char *)&msg, 1, 0);
     errno = save_errno;
 }
 
@@ -105,12 +105,12 @@ int main(int argc, char * argv [ ])
     addfd(epollfd, listenfd);
 
     // 创建双向管道
-    ret = socketpair(PF_UNIX, SOCK_STREAM, 0, pipefd);
+    ret = socketpair(PF_UNIX, SOCK_STREAM, 0, sig_pipefd);
     assert(ret != -1);
-    setnonblocking(pipefd[1]);
+    setnonblocking(sig_pipefd[1]);
 
-    // 注册管道pipefd[0]上的可读事件
-    addfd(epollfd, pipefd[0]);
+    // 注册管道sig_pipefd[0]上的可读事件
+    addfd(epollfd, sig_pipefd[0]);
 
     // 设置信号处理函数
     addsig(SIGHUP);
@@ -136,9 +136,10 @@ int main(int argc, char * argv [ ])
                 struct sockaddr_in clnt_addr;
                 socklen_t clnt_addr_len = sizeof(clnt_addr);
                 int connfd = accept(listenfd, (struct sockaddr*)&clnt_addr, &clnt_addr_len);
+                // 注册连接描述符上的事件
                 addfd(epollfd, connfd);
             }
-            else if ((sockfd == pipefd[0]) && (events[i].events & EPOLLIN))
+            else if ((sockfd == sig_pipefd[0]) && (events[i].events & EPOLLIN))
             {
                 int sig;
                 char signals[1024];
@@ -180,8 +181,8 @@ int main(int argc, char * argv [ ])
     }
 
     close(listenfd);
-    close(pipefd[1]);
-    close(pipefd[0]);
+    close(sig_pipefd[1]);
+    close(sig_pipefd[0]);
     return 0;
 }
 
