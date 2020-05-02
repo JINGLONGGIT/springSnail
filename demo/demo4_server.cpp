@@ -73,19 +73,20 @@ void lt(struct epoll_event* events, int number, int epollfd, int listenfd)
             socklen_t clnt_addr_len = sizeof(clnt_addr);
             int connfd = accept(listenfd, (struct sockaddr*)&clnt_addr, &clnt_addr_len);
 
-            // 注册连接描述符事件
-            addfd(epollfd, connfd, true);
+            // 注册连接描述符事件: 禁用ET模式
+            addfd(epollfd, connfd, false);
         }
         else if (events[i].events & EPOLLIN)
         {
+            // 只要socket读缓存中还有未读出的数据，这段代码就会被触发
             printf("event trigger once\n");
             memset(buf, '\0', sizeof(BUFFER_SIZE));
 
             int ret = recv(sockfd, buf, BUFFER_SIZE - 1, 0);
-            if (ret < 0)
+            if (ret <= 0)
             {
                 close(sockfd);
-                break;
+                continue;
             }
 
             printf("get %d bytes of content: %s\n", ret, buf);
@@ -121,11 +122,12 @@ void et(struct epoll_event* events, int number, int epollfd, int listenfd)
             socklen_t clnt_addr_len = sizeof(clnt_addr);
             int connfd = accept(listenfd, (struct sockaddr*)&clnt_addr, &clnt_addr_len);
 
-            // 注册连接描述符事件
+            // 注册连接描述符事件：启用ET模式
             addfd(epollfd, connfd, true);
         }
         else if (events[i].events & EPOLLIN)
         {
+            // 这段代码不会被重复触发，所以我们可以循环读取数据，以确保把socket读缓存中的所有数据读出
             printf("event trigger once\n");
 
             while (1)
@@ -140,7 +142,6 @@ void et(struct epoll_event* events, int number, int epollfd, int listenfd)
                         printf("read later\n");
                         break;
                     }
-
                     close(sockfd);
                     break;
                 }
@@ -164,7 +165,7 @@ void et(struct epoll_event* events, int number, int epollfd, int listenfd)
 int main(int argc, char * argv [ ])
 {
     struct sockaddr_in serv_addr, clnt_addr;
-    int listenfd, connfd;
+    int listenfd;
 
     bzero(&serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
