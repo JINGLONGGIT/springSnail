@@ -20,7 +20,7 @@
 // 文件传输系统
 int main(int argc, char * argv [ ])
 {
-    char *filename = "/mnt/hgfs/gitSpace/weatherDC/remotedata/20200319185105.txt";
+    const char *filename = "/mnt/hgfs/gitSpace/weatherDC/localdata/20200319185105.txt";
     FILE *fp = fopen(filename, "wb");
     if (fp == NULL)
     {
@@ -28,17 +28,17 @@ int main(int argc, char * argv [ ])
         return -1;
     }
 
-    int clnt_sock = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in serv_addr;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     serv_addr.sin_port = htons(1234);
-    connect(clnt_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     char buffer[MAXBUFSIZE] = {'\0'};
     int iCount = 0;
-    while ((iCount = read(clnt_sock, buffer, sizeof(buffer))) > 0)
+    while ((iCount = read(sockfd, buffer, sizeof(buffer))) > 0)
     {
         fwrite(buffer, iCount, 1, fp);
     }
@@ -46,7 +46,7 @@ int main(int argc, char * argv [ ])
     printf("文件传输完毕\n");
 
     fclose(fp);
-    close(clnt_sock);
+    close(sockfd);
 
     return 0;
 }
