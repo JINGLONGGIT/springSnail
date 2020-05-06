@@ -16,7 +16,7 @@ public:
     ~cgi_conn(){}
 
 public:
-    // 初始化客户端连接,清空缓冲区
+    // 初始化客户端连接, 清空缓冲区
     void init(int epollfd, int sockfd, const sockaddr_in& clnt_addr)
     {
         m_epollfd = epollfd;
@@ -69,6 +69,7 @@ public:
 
                 m_buf[idx - 1] = '\0';
 
+                // 判断客户要执行的CGI程序是否存在
                 char *filename = m_buf;
                 if (access(filename, F_OK) == -1)
                 {
@@ -85,11 +86,13 @@ public:
                 }
                 else if (ret > 0)
                 {
+                    // 父进程关闭连接
                     removefd(m_epollfd, m_sockfd);
                     break;
                 }
                 else 
                 {
+                    // 子进程将标准输出定向到m_sockfd，并执行CGI程序
                     close(STDOUT_FILENO);
                     dup(m_sockfd);
                     execl(m_buf, m_buf, 0);
