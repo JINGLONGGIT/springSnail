@@ -117,7 +117,7 @@ HTTP_CODE parse_requestline(char* temp, CHECK_STATE& checkstate)
     *version++ = '\0';
     version += strspn(version, "\t");
     // 仅支持HTTP/1.1方法
-    if (strcasecmp(version, "HTTP/1.1") == 0)       
+    if (strcasecmp(version, "HTTP/1.1") != 0)       
     {
         return BAD_REQUEST;
     }
@@ -151,7 +151,7 @@ HTTP_CODE parse_headers(char *temp)
     else if (strncasecmp(temp, "Host:", 5) == 0)
     {
         temp += 5;
-        temp += strspn("temp", "\t");
+        temp += strspn(temp, "\t");
         printf("the request host is: %s\n", temp);
     }
     else 
